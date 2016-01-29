@@ -1,7 +1,7 @@
 # run on hosts on LAN
 # assumes appropriate NICs are enabled / disabled
 
-### configuratoin ###
+### configuration ###
 
 # network interface to LAN
 NETWORK_INTERFACE="eth0"
