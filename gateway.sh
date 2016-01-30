@@ -1,4 +1,5 @@
 # run on the firewall gateway
+# assumes appropriate NICs are enabled / disabled
 
 ### configuration ###
 
@@ -6,16 +7,19 @@
 NETWORK_INTERFACE="eth1"
 
 # address of this (gateway) machine on LAN behind firewall
-GATEWAY_ADDRESS="192.168.0.0"
+GATEWAY_ADDRESS="10.0.0.0"
 
 # subnet address of LAN behind firewall (CIDR notation)
-SUBNET_ADDRESS="192.168.0.0/24"
+SUBNET_ADDRESS="10.0.0.0/24"
 
 ### code - do not touch! ###
 
+# enable forwarding (requires root)
+echo "1" > /proc/sys/net/ipv4/ip_forward
+
 # configure network properties
-ip addr add $GATEWAY_ADDRESS dev $NETWORK_INTERFACE
-ip route add $SUBNET_ADDRESS dev $NETWORK_INTERFACE
+ip addr replace $GATEWAY_ADDRESS dev $NETWORK_INTERFACE valid_lft forever preferred_lft forever
+ip route replace $SUBNET_ADDRESS dev $NETWORK_INTERFACE proto static
 
 # reset iptables
 iptables -F
