@@ -6,7 +6,7 @@
 ### configuration ###
 
 # network interface to LAN
-NETWORK_INTERFACE="eth0"
+NETWORK_INTERFACE="eth1"
 
 # address of this machine on the LAN
 HOST_ADDRESS="10.0.0.1"
