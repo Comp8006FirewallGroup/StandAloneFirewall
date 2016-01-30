@@ -1,6 +1,6 @@
 # run on hosts on LAN
-# before running sccript, make sure that:
-# * appropriate NICs are enabled / disabled
+# before running script, make sure that:
+# * appropriate NICs are enabled / disabled (NETWORK_INTERFACE is enabled, the rest are disabled)
 # * appropriate DNS servers have been added to the /etc/resolv.conf (syntax: nameserver x.x.x.x)
 
 ### configuration ###

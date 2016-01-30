@@ -1,5 +1,6 @@
 # run on the firewall gateway
-# assumes appropriate NICs are enabled / disabled
+# before running script, make sure that:
+# * appropriate NICs are enabled / disabled (LAN_NETWORK_INTERFACE and WAN_NETWORK_INTERFACE are enabled, the rest are disabled)
 
 ### configuration ###
 
@@ -7,7 +8,7 @@
 LAN_NETWORK_INTERFACE="eth0"
 
 # network interface to WAN beyond firewall
-INTERNET_NETWORK_INTERFACE="wlan0"
+WAN_NETWORK_INTERFACE="wlan0"
 
 # address of this (gateway) machine on LAN behind firewall
 GATEWAY_ADDRESS="10.0.0.0"
@@ -34,4 +35,4 @@ iptables -t mangle -X
 
 # enable forwarding and masquerading
 # linuxpoison.blogspot.ca/2009/02/how-to-configure-linux-as-internet.html
-iptables -t nat -A POSTROUTING -o $INTERNET_NETWORK_INTERFACE -j MASQUERADE
+iptables -t nat -A POSTROUTING -o $WAN_NETWORK_INTERFACE -j MASQUERADE
