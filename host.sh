@@ -1,5 +1,7 @@
 # run on hosts on LAN
-# assumes appropriate NICs are enabled / disabled
+# before running sccript, make sure that:
+# * appropriate NICs are enabled / disabled
+# * appropriate DNS servers have been added to the /etc/resolv.conf (syntax: nameserver x.x.x.x)
 
 ### configuration ###
 

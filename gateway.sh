@@ -6,7 +6,10 @@
 ### configuration ###
 
 # network interface to LAN behind firewall
-NETWORK_INTERFACE="eth1"
+LAN_NETWORK_INTERFACE="eth0"
+
+# network interface to LAN behind firewall
+INTERNET_NETWORK_INTERFACE="wlan0"
 
 # address of this (gateway) machine on LAN behind firewall
 GATEWAY_ADDRESS="10.0.0.0"
@@ -20,8 +23,8 @@ SUBNET_ADDRESS="10.0.0.0/24"
 echo "1" > /proc/sys/net/ipv4/ip_forward
 
 # configure network properties
-ip addr replace $GATEWAY_ADDRESS dev $NETWORK_INTERFACE valid_lft forever preferred_lft forever
-ip route replace $SUBNET_ADDRESS dev $NETWORK_INTERFACE proto static
+ip addr replace $GATEWAY_ADDRESS dev $LAN_NETWORK_INTERFACE valid_lft forever preferred_lft forever
+ip route replace $SUBNET_ADDRESS dev $LAN_NETWORK_INTERFACE proto static
 
 # reset iptables
 iptables -F
@@ -32,4 +35,4 @@ iptables -t nat -X
 iptables -t mangle -X
 
 # enable forwarding and masquerading
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o $INTERNET_NETWORK_INTERFACE -j MASQUERADE
