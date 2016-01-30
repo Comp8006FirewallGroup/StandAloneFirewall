@@ -9,13 +9,13 @@
 NETWORK_INTERFACE="eth1"
 
 # address of this machine on the LAN
-HOST_ADDRESS="10.0.0.1"
+HOST_ADDRESS="10.210.0.1"
 
 # subnet address of this LAN
-SUBNET_ADDRESS="10.0.0.0/24"
+SUBNET_ADDRESS="10.210.0.0/24"
 
 # LAN's gateway to Internet
-GATEWAY_ADDRESS="10.0.0.0"
+GATEWAY_ADDRESS="10.210.0.0"
 
 ### code - do not touch! ###
 

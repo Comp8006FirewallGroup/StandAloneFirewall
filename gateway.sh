@@ -11,10 +11,10 @@ LAN_NETWORK_INTERFACE="eth0"
 WAN_NETWORK_INTERFACE="wlan0"
 
 # address of this (gateway) machine on LAN behind firewall
-GATEWAY_ADDRESS="10.0.0.0"
+GATEWAY_ADDRESS="10.210.0.0"
 
 # subnet address of LAN behind firewall (CIDR notation)
-SUBNET_ADDRESS="10.0.0.0/24"
+SUBNET_ADDRESS="10.210.0.0/24"
 
 ### code - do not touch! ###
 
