@@ -1,14 +1,12 @@
 # run on the firewall gateway
 # assumes appropriate NICs are enabled / disabled
 
-# linuxpoison.blogspot.ca/2009/02/how-to-configure-linux-as-internet.html
-
 ### configuration ###
 
 # network interface to LAN behind firewall
 LAN_NETWORK_INTERFACE="eth0"
 
-# network interface to LAN behind firewall
+# network interface to WAN beyond firewall
 INTERNET_NETWORK_INTERFACE="wlan0"
 
 # address of this (gateway) machine on LAN behind firewall
@@ -35,4 +33,5 @@ iptables -t nat -X
 iptables -t mangle -X
 
 # enable forwarding and masquerading
+# linuxpoison.blogspot.ca/2009/02/how-to-configure-linux-as-internet.html
 iptables -t nat -A POSTROUTING -o $INTERNET_NETWORK_INTERFACE -j MASQUERADE
