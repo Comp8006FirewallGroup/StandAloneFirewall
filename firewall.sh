@@ -113,17 +113,17 @@ do
 				-s $SVR --sport 53 \
 				-d $HOST_ADDR --dport $UNPRIV_PORTS \
 				-j DNS
-	$IPT -A FORWARD -o $WAN_NIC -p udp \
-				-d $SVR --dport 53 \
-				-s $SUBNET_ADDR --sport $UNPRIV_PORTS \
+	$IPT -A FORWARD -p udp \
+				-o $WAN_NIC -d $SVR --dport 53 \
+				-i $LAN_NIC -s $SUBNET_ADDR --sport $UNPRIV_PORTS \
 				-j DNS
-	$IPT -A FORWARD -i $WAN_NIC -p udp \
-				-s $SVR --sport 53 \
-				-d $SUBNET_ADDR --dport $UNPRIV_PORTS \
+	$IPT -A FORWARD -p udp \
+				-i $WAN_NIC -s $SVR --sport 53 \
+				-o $LAN_NIC -d $SUBNET_ADDR --dport $UNPRIV_PORTS \
 				-j DNS
 done
 
-# enable inbound TCP traffic to local TCP servers
+# enable inbound TCP traffic to local TCP servers - TODO do some kind of port forwarding...
 echo "# enable inbound TCP traffic to local TCP servers"
 for SVR_PORT in $LOCAL_TCP_SVRS
 do
