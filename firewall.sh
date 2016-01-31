@@ -136,7 +136,7 @@ done
 # port forward to enable access to LAN TCP servers from WAN
 for SVR in $LAN_TCP_SVRS
 do
-	# parse parameters into address and port
+	# parse parameters into public port, private address and private port
 	IFS=","
 	set $SVR
 	IFS=" "
@@ -147,10 +147,12 @@ do
 	# make firewall rules
 	$IPT -A PREROUTING -t nat -i $WAN_NIC -p tcp \
 				-s $ANY_ADDR --sport $UNPRIV_PORTS \
-				-d $HOST_ADDR --dport $DST_PORT -j DNAT --to $SVR_ADDR:$SVR_PORT
+				-d $HOST_ADDR --dport $DST_PORT \
+				-m state --state NEW,ESTABLISHED \
+				-j DNAT --to $SVR_ADDR:$SVR_PORT
 done
 
-# enable inbound TCP traffic to LAN TCP servers - TODO test
+# enable inbound TCP traffic to LAN TCP servers
 for SVR in $LAN_TCP_SVRS
 do
 	# parse parameters into address and port
@@ -182,6 +184,24 @@ do
 				-i $LAN_NIC -s $SUBNET_ADDR --sport $UNPRIV_PORTS \
 				-o $WAN_NIC -d $ANY_ADDR --dport $SVR_PORT \
 				-m state --state NEW,ESTABLISHED -j TCP_CLNT
+done
+
+# port forward to enable access to LAN UDP servers from WAN - TODO test
+for SVR in $LAN_UDP_SVRS
+do
+	# parse parameters into public port, private address and private port
+	IFS=","
+	set $SVR
+	IFS=" "
+	DST_PORT=$1
+	SVR_ADDR=$2
+	SVR_PORT=$3
+
+	# make firewall rules
+	$IPT -A PREROUTING -t nat -i $WAN_NIC -p udp \
+				-s $ANY_ADDR --sport $UNPRIV_PORTS \
+				-d $HOST_ADDR --dport $DST_PORT \
+				-j DNAT --to $SVR_ADDR:$SVR_PORT
 done
 
 # enable inbound UDP traffic to local UDP servers - TODO test
