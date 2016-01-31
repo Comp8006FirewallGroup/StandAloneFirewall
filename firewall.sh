@@ -20,13 +20,21 @@ DNS_SERVERS="8.8.8.8"
 INBOUND_ICMP_TYPES="0"
 OUTBOUND_ICMP_TYPES="8"
 
-# allowed TCP ports
-LOCAL_TCP_SVRS="22 80"
-REMOTE_TCP_SVRS="22 80 443"
+# TCP servers on LAN accessible from WAN
+# syntax: [public port 1],[private address 1],[private port 1] [public port 2],[private address 2],[private port 2]
+# example: 80,192.168.1.1,8080 22,192.168.1.5,22
+LAN_TCP_SVRS="22,10.210.0.1,22 8080,10.210.0.1,80"
 
-# allowed UDP ports
-LOCAL_UDP_SVRS="22 80"
-REMOTE_UDP_SVRS="53"
+# TCP servers on WAN accessible from LAN
+WAN_TCP_SVRS="22 80 443"
+
+# UDP servers on LAN accessible from WAN
+# syntax: [public port 1],[private address 1],[private port 1] [public port 2],[private address 2],[private port 2]
+# example: 80,192.168.1.1,8080 22,192.168.1.5,22
+LAN_UDP_SVRS=""
+
+# UDP servers on WAN accessible from LAN
+WAN_UDP_SVRS="53"
 
 ### implementation - do not touch! ###
 
@@ -125,21 +133,46 @@ do
 				-j ICMP
 done
 
-# enable inbound TCP traffic to local TCP servers - TODO do some kind of port forwarding...
-for SVR_PORT in $LOCAL_TCP_SVRS
+# port forward to enable access to LAN TCP servers from WAN
+for SVR in $LAN_TCP_SVRS
 do
-	$IPT -A INPUT -i $WAN_NIC -p tcp \
-				-d $HOST_ADDR --dport $SVR_PORT \
+	# parse parameters into address and port
+	IFS=","
+	set $SVR
+	IFS=" "
+	DST_PORT=$1
+	SVR_ADDR=$2
+	SVR_PORT=$3
+
+	# make firewall rules
+	$IPT -A PREROUTING -t nat -i $WAN_NIC -p tcp \
 				-s $ANY_ADDR --sport $UNPRIV_PORTS \
+				-d $HOST_ADDR --dport $DST_PORT -j DNAT --to $SVR_ADDR:$SVR_PORT
+done
+
+# enable inbound TCP traffic to LAN TCP servers - TODO test
+for SVR in $LAN_TCP_SVRS
+do
+	# parse parameters into address and port
+	IFS=","
+	set $SVR
+	IFS=" "
+	SVR_ADDR=$2
+	SVR_PORT=$3
+
+	# make firewall rules
+	$IPT -A FORWARD -p tcp \
+				-i $WAN_NIC -s $ANY_ADDR --sport $UNPRIV_PORTS \
+				-o $LAN_NIC -d $SVR_ADDR --dport $SVR_PORT \
 				-m state --state NEW,ESTABLISHED -j TCP_SVR
-	$IPT -A OUTPUT -o $WAN_NIC -p tcp \
-				-s $HOST_ADDR --sport $SVR_PORT \
-				-d $ANY_ADDR --dport $UNPRIV_PORTS \
+	$IPT -A FORWARD -p tcp \
+				-i $LAN_NIC -s $SVR_ADDR --sport $SVR_PORT \
+				-o $WAN_NIC -d $ANY_ADDR --dport $UNPRIV_PORTS \
 				-m state --state ESTABLISHED -j TCP_SVR
 done
 
 # enable outbound TCP traffic to remote TCP servers
-for SVR_PORT in $REMOTE_TCP_SVRS
+for SVR_PORT in $WAN_TCP_SVRS
 do
 	$IPT -A FORWARD -p tcp \
 				-i $WAN_NIC -s $ANY_ADDR --sport $SVR_PORT \
@@ -151,21 +184,29 @@ do
 				-m state --state NEW,ESTABLISHED -j TCP_CLNT
 done
 
-# enable inbound UDP traffic to local UDP servers - TODO do some kind of port forwarding...
-for SVR_PORT in $LOCAL_UDP_SVRS
+# enable inbound UDP traffic to local UDP servers - TODO test
+for SVR in $LAN_UDP_SVRS
 do
-	$IPT -A INPUT -i $WAN_NIC -p udp \
-				-d $HOST_ADDR --dport $SVR_PORT \
-				-s $ANY_ADDR --sport $UNPRIV_PORTS \
+	# parse parameters into address and port
+	IFS=","
+	set $SVR
+	IFS=" "
+	SVR_ADDR=$2
+	SVR_PORT=$3
+
+	# make firewall rules
+	$IPT -A FORWARD -p udp \
+				-i $WAN_NIC -s $ANY_ADDR --sport $UNPRIV_PORTS \
+				-o $LAN_NIC -d $SVR_ADDR --dport $SVR_PORT \
 				-j UDP_SVR
-	$IPT -A OUTPUT -o $WAN_NIC -p udp \
-				-s $HOST_ADDR --sport $SVR_PORT \
-				-d $ANY_ADDR --dport $UNPRIV_PORTS \
+	$IPT -A FORWARD -p udp \
+				-i $LAN_NIC -s $SVR_ADDR --sport $SVR_PORT \
+				-o $WAN_NIC -d $ANY_ADDR --dport $UNPRIV_PORTS \
 				-j UDP_SVR
 done
 
 # enable outbound UDP traffic to remote UDP servers
-for SVR_PORT in $REMOTE_UDP_SVRS
+for SVR_PORT in $WAN_UDP_SVRS
 do
 	$IPT -A FORWARD -p udp \
 				-i $WAN_NIC -s $ANY_ADDR --sport $SVR_PORT \
