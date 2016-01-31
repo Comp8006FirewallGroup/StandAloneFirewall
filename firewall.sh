@@ -97,14 +97,6 @@ done
 # enable DNS traffic to DNS servers
 for SVR_ADDR in $DNS_SERVERS
 do
-	# $IPT -A OUTPUT -o $WAN_NIC -p udp \
-	# 			-d $SVR_ADDR --dport 53 \
-	# 			-s $HOST_ADDR --sport $UNPRIV_PORTS \
-	# 			-j DNS
-	# $IPT -A INPUT -i $WAN_NIC -p udp \
-	# 			-s $SVR_ADDR --sport 53 \
-	# 			-d $HOST_ADDR --dport $UNPRIV_PORTS \
-	# 			-j DNS
 	$IPT -A FORWARD -p udp \
 				-i $LAN_NIC -s $SUBNET_ADDR --sport $UNPRIV_PORTS \
 				-o $WAN_NIC -d $SVR_ADDR --dport 53 \
@@ -149,14 +141,6 @@ done
 # enable outbound TCP traffic to remote TCP servers
 for SVR_PORT in $REMOTE_TCP_SVRS
 do
-	# $IPT -A INPUT -i $WAN_NIC -p tcp \
-	# 			-s $ANY_ADDR --sport $SVR_PORT \
-	# 			-d $HOST_ADDR --dport $UNPRIV_PORTS \
-	# 			-m state --state ESTABLISHED -j TCP_CLNT
-	# $IPT -A OUTPUT -o $WAN_NIC -p tcp \
-	# 			-d $ANY_ADDR --dport $SVR_PORT \
-	# 			-s $HOST_ADDR --sport $UNPRIV_PORTS \
-	# 			-m state --state NEW,ESTABLISHED -j TCP_CLNT
 	$IPT -A FORWARD -p tcp \
 				-i $WAN_NIC -s $ANY_ADDR --sport $SVR_PORT \
 				-o $LAN_NIC -d $SUBNET_ADDR --dport $UNPRIV_PORTS \
@@ -182,49 +166,3 @@ done
 
 # questions:
 # drop all packets destined for the firewall from the outside??? including established TCP connections? how about UDP packets?
-
-# ## SSH
-# $IPT -A OUTPUT -p tcp --dport 22 -j ssh
-# $IPT -A INPUT  -p tcp --sport 22 -j ssh
-
-
-# $IPT -A ssh -o $WAN_NIC -p tcp \
-# 			--sport $UNPRIV_PORTS \
-# 			-d $HOST_ADDR --dport 22 -j ACCEPT
-
-# $IPT -A ssh -i $WAN_NIC -p tcp \
-# 		 -s $HOST_ADDR --sport 22 \
-# 		 --dport $UNPRIV_PORTS -j ACCEPT
-
-# ## WWW
-# $IPT -A OUTPUT -m tcp -p tcp --sport 80 -j www
-# $IPT -A INPUT  -m tcp -p tcp --sport 80 -j www
-# $IPT -A OUTPUT -m tcp -p tcp --dport 443 -j www
-# $IPT -A INPUT  -m tcp -p tcp --sport 443 -j www
-
-# $IPT -A www -o $WAN_NIC -m tcp -p tcp \
-# 			-s $HOST_ADDR --sport $UNPRIV_PORTS \
-# 			--dport 80 -j ACCEPT
-
-# $IPT -A www -i $WAN_NIC -m tcp -p tcp \
-# 			--sport 80 \
-# 			-d $HOST_ADDR --dport $UNPRIV_PORTS -j ACCEPT
-
-# $IPT -A www -i 	$WAN_NIC -m tcp -p tcp \
-# 			--sport $UNPRIV_PORTS \
-# 			-d $HOST_ADDR --dport 80 -j DROP
-
-# $IPT -A www -o $WAN_NIC -m tcp -p tcp \
-# 			-s $HOST_ADDR --sport $UNPRIV_PORTS \
-# 			--dport 443 -j ACCEPT
-
-# $IPT -A www -i $WAN_NIC -m tcp -p tcp \
-# 			--sport 443 \
-# 			-d $HOST_ADDR --dport $UNPRIV_PORTS -j ACCEPT
-
-# $IPT -A www -i 	$WAN_NIC -m tcp -p tcp \
-# 			--sport $UNPRIV_PORTS \
-# 			-d $HOST_ADDR --dport 443 -j DROP
-
-
-# $IPT -A www
