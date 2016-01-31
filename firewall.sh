@@ -151,6 +151,19 @@ do
 				-m state --state NEW,ESTABLISHED -j TCP_CLNT
 done
 
+# enable inbound UDP traffic to local UDP servers - TODO do some kind of port forwarding...
+for SVR_PORT in $LOCAL_UDP_SVRS
+do
+	$IPT -A INPUT -i $WAN_NIC -p udp \
+				-d $HOST_ADDR --dport $SVR_PORT \
+				-s $ANY_ADDR --sport $UNPRIV_PORTS \
+				-j UDP_SVR
+	$IPT -A OUTPUT -o $WAN_NIC -p udp \
+				-s $HOST_ADDR --sport $SVR_PORT \
+				-d $ANY_ADDR --dport $UNPRIV_PORTS \
+				-j UDP_SVR
+done
+
 # enable outbound UDP traffic to remote UDP servers
 for SVR_PORT in $REMOTE_UDP_SVRS
 do
