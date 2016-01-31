@@ -18,7 +18,7 @@ SUBNET_ADDRESS="10.210.0.0/24"
 GATEWAY_ADDRESS="10.210.0.0"
 
 # DNS server addresses
-NAME_SERVERS="192.168.1.254 8.8.8.8"
+NAME_SERVERS="8.8.8.8"
 
 ### code - do not touch! ###
 

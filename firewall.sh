@@ -21,7 +21,7 @@ echo "# addresses"
 HOST_ADDR="192.168.1.74"
 SUBNET_ADDR="10.210.0.0/24"
 DHCP_SERVERS="192.168.1.254"
-NAME_SERVERS="192.168.1.254 8.8.8.8"
+NAME_SERVERS="8.8.8.8"
 
 # ports
 echo "# ports"
@@ -47,7 +47,11 @@ BROADCAST_DEST_ADDR="255.255.255.255"
 # reset firewall
 echo "# reset firewall"
 $IPT -F
+$IPT -t nat -F
+$IPT -t mangle -F
 $IPT -X
+$IPT -t nat -X
+$IPT -t mangle -X
 $IPT -P INPUT ACCEPT
 $IPT -P OUTPUT ACCEPT
 $IPT -P FORWARD ACCEPT
@@ -63,6 +67,10 @@ echo "# set default chain policies"
 $IPT -P INPUT DROP
 $IPT -P OUTPUT DROP
 $IPT -P FORWARD DROP
+
+# enable forwarding and masquerading
+# linuxpoison.blogspot.ca/2009/02/how-to-configure-linux-as-internet.html
+$IPT -t nat -A POSTROUTING -o $WAN_NETWORK_INTERFACE -j MASQUERADE
 
 # create user chains
 echo "# create user chains"
@@ -95,6 +103,7 @@ do
 				-j DHCP
 done
 
+for SVR in $NAME_SERVERS
 do
 	$IPT -A OUTPUT -o $WAN_NIC -p udp \
 				-d $SVR --dport 53 \
