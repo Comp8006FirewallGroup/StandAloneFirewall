@@ -64,9 +64,6 @@ $IPT -P INPUT DROP
 $IPT -P OUTPUT DROP
 $IPT -P FORWARD DROP
 
-# configure DNS servers
-echo "nameserver $NAME_SERVERS" > /etc/resolv.conf
-
 # create user chains
 echo "# create user chains"
 USER_CHAINS="DHCP DNS ICMP TCP_SVR TCP_CLNT"
@@ -98,9 +95,6 @@ do
 				-j DHCP
 done
 
-# enable DNS traffic to DNS servers
-echo "# enable DNS traffic to DNS servers"
-for SVR in $NAME_SERVERS
 do
 	$IPT -A OUTPUT -o $WAN_NIC -p udp \
 				-d $SVR --dport 53 \
