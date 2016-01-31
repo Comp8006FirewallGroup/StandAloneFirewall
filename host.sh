@@ -8,16 +8,22 @@
 # network interface to LAN
 NETWORK_INTERFACE="eth1"
 
-# address of this machine on the LAN
+# host's address on LAN
 HOST_ADDRESS="10.210.0.1"
 
-# subnet address of this LAN
+# LAN subnet address
 SUBNET_ADDRESS="10.210.0.0/24"
 
-# LAN's gateway to Internet
+# WAN gateway address
 GATEWAY_ADDRESS="10.210.0.0"
 
+# DNS server addresses
+NAME_SERVERS="8.8.8.8"
+
 ### code - do not touch! ###
+
+# configure DNS servers
+echo "nameserver $NAME_SERVERS" > /etc/resolv.conf
 
 # configure network properties
 ip addr replace $HOST_ADDRESS dev $NETWORK_INTERFACE valid_lft forever preferred_lft forever
