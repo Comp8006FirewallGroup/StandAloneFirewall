@@ -7,13 +7,13 @@ IPT="iptables"
 PS4='$LINENO '
 
 # network interfaces
-WAN_NIC="wlan0"
-LAN_NIC="eth0"
+WAN_NIC="eno1"
+LAN_NIC="enp3s2"
 
 # addresses
-HOST_ADDR="192.168.1.74"
+HOST_ADDR="192.168.0.22"
 SUBNET_ADDR="10.210.0.0/24"
-DHCP_SERVERS="192.168.1.254"
+DHCP_SERVERS="192.168.0.100"
 DNS_SERVERS="8.8.8.8"
 
 # allowed ICMP packet types
