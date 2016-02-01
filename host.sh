@@ -6,7 +6,7 @@
 ### configuration ###
 
 # network interface to LAN
-NETWORK_INTERFACE="eth1"
+NETWORK_INTERFACE="enp3s2"
 
 # host's address on LAN
 HOST_ADDRESS="10.210.0.1"
@@ -15,7 +15,7 @@ HOST_ADDRESS="10.210.0.1"
 SUBNET_ADDRESS="10.210.0.0/24"
 
 # WAN gateway address
-GATEWAY_ADDRESS="10.210.0.0"
+GATEWAY_ADDRESS="10.210.0.2"
 
 # DNS server addresses
 NAME_SERVERS="8.8.8.8"
@@ -29,4 +29,3 @@ echo "nameserver $NAME_SERVERS" > /etc/resolv.conf
 ip addr replace $HOST_ADDRESS dev $NETWORK_INTERFACE valid_lft forever preferred_lft forever
 ip route replace $SUBNET_ADDRESS dev $NETWORK_INTERFACE proto static
 ip route replace default via $GATEWAY_ADDRESS dev $NETWORK_INTERFACE proto static
-
