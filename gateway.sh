@@ -5,13 +5,13 @@
 ### configuration ###
 
 # network interface to LAN behind firewall
-LAN_NETWORK_INTERFACE="eth0"
+LAN_NETWORK_INTERFACE="enp3s2"
 
 # network interface to WAN beyond firewall
-WAN_NETWORK_INTERFACE="wlan0"
+WAN_NETWORK_INTERFACE="eno1"
 
 # address of this (gateway) machine on LAN behind firewall
-GATEWAY_ADDRESS="10.210.0.0"
+GATEWAY_ADDRESS="10.210.0.2"
 
 # subnet address of LAN behind firewall (CIDR notation)
 SUBNET_ADDRESS="10.210.0.0/24"
