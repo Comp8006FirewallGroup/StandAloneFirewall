@@ -31,21 +31,33 @@ WAN_TCP_SVRS="22 80 443"
 # UDP servers on LAN accessible from WAN
 # syntax: [public port 1],[private address 1],[private port 1] [public port 2],[private address 2],[private port 2]
 # example: 80,192.168.1.1,8080 22,192.168.1.5,22
-LAN_UDP_SVRS=""
+LAN_UDP_SVRS="22,10.210.0.1,22"
 
 # UDP servers on WAN accessible from LAN
-WAN_UDP_SVRS="53"
+WAN_UDP_SVRS=""
 
-### implementation - do not touch! ###
+# TCP traffic to minimize delay for
+TCP_MINIMIZE_DELAY=""
+
+# TCP traffic to maximize throughput for
+TCP_MAXIMIZE_THROUGHPUT=""
+
+# UDP traffic to minimize delay for
+UDP_MINIMIZE_DELAY=""
+
+# UDP traffic to maximize throughput for
+UDP_MAXIMIZE_THROUGHPUT="22"
 
 # addresses
-ANY_ADDR="0.0.0.0/0"
+WAN_ADDR="0.0.0.0/0"
 BROADCAST_SRC_ADDR="0.0.0.0"
 BROADCAST_DEST_ADDR="255.255.255.255"
 
 # ports
 UNPRIV_PORTS="1024:65535"
 PRIV_PORTS="0:1023"
+
+### implementation - do not touch! ###
 
 # reset firewall
 $IPT -F
@@ -119,7 +131,7 @@ done
 for ICMP_TYPE in $INBOUND_ICMP_TYPES
 do
 	$IPT -A FORWARD -p icmp --icmp-type $ICMP_TYPE \
-				-i $WAN_NIC -s $ANY_ADDR \
+				-i $WAN_NIC -s $WAN_ADDR \
 				-o $LAN_NIC -d $SUBNET_ADDR \
 				-j ICMP
 done
@@ -129,7 +141,7 @@ for ICMP_TYPE in $OUTBOUND_ICMP_TYPES
 do
 	$IPT -A FORWARD -p icmp --icmp-type $ICMP_TYPE \
 				-i $LAN_NIC -s $SUBNET_ADDR \
-				-o $WAN_NIC -d $ANY_ADDR \
+				-o $WAN_NIC -d $WAN_ADDR \
 				-j ICMP
 done
 
@@ -146,17 +158,17 @@ do
 
 	# make firewall rules
 	$IPT -A PREROUTING -t nat -i $WAN_NIC -p tcp \
-				-s $ANY_ADDR --sport $UNPRIV_PORTS \
+				-s $WAN_ADDR --sport $UNPRIV_PORTS \
 				-d $HOST_ADDR --dport $DST_PORT \
 				-m state --state NEW,ESTABLISHED \
 				-j DNAT --to $SVR_ADDR:$SVR_PORT
 	$IPT -A FORWARD -p tcp \
-				-i $WAN_NIC -s $ANY_ADDR --sport $UNPRIV_PORTS \
+				-i $WAN_NIC -s $WAN_ADDR --sport $UNPRIV_PORTS \
 				-o $LAN_NIC -d $SVR_ADDR --dport $SVR_PORT \
 				-m state --state NEW,ESTABLISHED -j TCP_SVR
 	$IPT -A FORWARD -p tcp \
 				-i $LAN_NIC -s $SVR_ADDR --sport $SVR_PORT \
-				-o $WAN_NIC -d $ANY_ADDR --dport $UNPRIV_PORTS \
+				-o $WAN_NIC -d $WAN_ADDR --dport $UNPRIV_PORTS \
 				-m state --state ESTABLISHED -j TCP_SVR
 done
 
@@ -164,12 +176,12 @@ done
 for SVR_PORT in $WAN_TCP_SVRS
 do
 	$IPT -A FORWARD -p tcp \
-				-i $WAN_NIC -s $ANY_ADDR --sport $SVR_PORT \
+				-i $WAN_NIC -s $WAN_ADDR --sport $SVR_PORT \
 				-o $LAN_NIC -d $SUBNET_ADDR --dport $UNPRIV_PORTS \
 				-m state --state ESTABLISHED -j TCP_CLNT
 	$IPT -A FORWARD -p tcp \
 				-i $LAN_NIC -s $SUBNET_ADDR --sport $UNPRIV_PORTS \
-				-o $WAN_NIC -d $ANY_ADDR --dport $SVR_PORT \
+				-o $WAN_NIC -d $WAN_ADDR --dport $SVR_PORT \
 				-m state --state NEW,ESTABLISHED -j TCP_CLNT
 done
 
@@ -186,16 +198,16 @@ do
 
 	# make firewall rules
 	$IPT -A PREROUTING -t nat -i $WAN_NIC -p udp \
-				-s $ANY_ADDR --sport $UNPRIV_PORTS \
+				-s $WAN_ADDR --sport $UNPRIV_PORTS \
 				-d $HOST_ADDR --dport $DST_PORT \
 				-j DNAT --to $SVR_ADDR:$SVR_PORT
 	$IPT -A FORWARD -p udp \
-				-i $WAN_NIC -s $ANY_ADDR --sport $UNPRIV_PORTS \
+				-i $WAN_NIC -s $WAN_ADDR --sport $UNPRIV_PORTS \
 				-o $LAN_NIC -d $SVR_ADDR --dport $SVR_PORT \
 				-j UDP_SVR
 	$IPT -A FORWARD -p udp \
 				-i $LAN_NIC -s $SVR_ADDR --sport $SVR_PORT \
-				-o $WAN_NIC -d $ANY_ADDR --dport $UNPRIV_PORTS \
+				-o $WAN_NIC -d $WAN_ADDR --dport $UNPRIV_PORTS \
 				-j UDP_SVR
 done
 
@@ -203,16 +215,50 @@ done
 for SVR_PORT in $WAN_UDP_SVRS
 do
 	$IPT -A FORWARD -p udp \
-				-i $WAN_NIC -s $ANY_ADDR --sport $SVR_PORT \
+				-i $WAN_NIC -s $WAN_ADDR --sport $SVR_PORT \
 				-o $LAN_NIC -d $SUBNET_ADDR --dport $UNPRIV_PORTS \
 				-j UDP_CLNT
 	$IPT -A FORWARD -p udp \
 				-i $LAN_NIC -s $SUBNET_ADDR --sport $UNPRIV_PORTS \
-				-o $WAN_NIC -d $ANY_ADDR --dport $SVR_PORT \
+				-o $WAN_NIC -d $WAN_ADDR --dport $SVR_PORT \
 				-j UDP_CLNT
 done
 
+# minimize delay for TCP traffic
+for PORT in $TCP_MINIMIZE_DELAY
+do
+	$IPT -A FORWARD -t mangle -p tcp --sport $PORT \
+				-j TOS --set-tos Minimize-Delay
+	$IPT -A FORWARD -t mangle -p tcp --dport $PORT \
+				-j TOS --set-tos Minimize-Delay
+done
 
+# maximize throughput for TCP traffic
+for PORT in $TCP_MAXIMIZE_THROUGHPUT
+do
+	$IPT -A FORWARD -t mangle -p tcp --sport $PORT \
+				-j TOS --set-tos Maximize-Throughput
+	$IPT -A FORWARD -t mangle -p tcp --dport $PORT \
+				-j TOS --set-tos Maximize-Throughput
+done
+
+# UDP traffic to minimize delay for
+for PORT in $UDP_MINIMIZE_DELAY
+do
+	$IPT -A FORWARD -t mangle -p udp --sport $PORT \
+				-j TOS --set-tos Minimize-Delay
+	$IPT -A FORWARD -t mangle -p udp --dport $PORT \
+				-j TOS --set-tos Minimize-Delay
+done
+
+# UDP traffic to maximize throughput for
+for PORT in $UDP_MAXIMIZE_THROUGHPUT
+do
+	$IPT -A FORWARD -t mangle -p udp --sport $PORT \
+				-j TOS --set-tos Maximize-Throughput
+	$IPT -A FORWARD -t mangle -p udp --dport $PORT \
+				-j TOS --set-tos Maximize-Throughput
+done
 
 # questions:
 # drop all packets destined for the firewall from the outside??? including established TCP connections? how about UDP packets?
