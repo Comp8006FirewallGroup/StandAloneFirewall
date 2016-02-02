@@ -81,10 +81,6 @@ do
 	$IPT -A $CHAIN -j ACCEPT
 done
 
-#DROP all inbound packets from outside the network matching the LAN subnet
-$IPT -A FORWARD -i $WAN_NIC -s $SUBNET_ADDR
-	-j DROP
-
 # enable DHCP traffic to DHCP servers
 for SVR in $DHCP_SERVERS
 do
