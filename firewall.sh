@@ -150,19 +150,6 @@ do
 				-d $HOST_ADDR --dport $DST_PORT \
 				-m state --state NEW,ESTABLISHED \
 				-j DNAT --to $SVR_ADDR:$SVR_PORT
-done
-
-# enable inbound TCP traffic to LAN TCP servers
-for SVR in $LAN_TCP_SVRS
-do
-	# parse parameters into address and port
-	IFS=","
-	set $SVR
-	IFS=" "
-	SVR_ADDR=$2
-	SVR_PORT=$3
-
-	# make firewall rules
 	$IPT -A FORWARD -p tcp \
 				-i $WAN_NIC -s $ANY_ADDR --sport $UNPRIV_PORTS \
 				-o $LAN_NIC -d $SVR_ADDR --dport $SVR_PORT \
@@ -202,19 +189,6 @@ do
 				-s $ANY_ADDR --sport $UNPRIV_PORTS \
 				-d $HOST_ADDR --dport $DST_PORT \
 				-j DNAT --to $SVR_ADDR:$SVR_PORT
-done
-
-# enable inbound UDP traffic to local UDP servers - TODO test
-for SVR in $LAN_UDP_SVRS
-do
-	# parse parameters into address and port
-	IFS=","
-	set $SVR
-	IFS=" "
-	SVR_ADDR=$2
-	SVR_PORT=$3
-
-	# make firewall rules
 	$IPT -A FORWARD -p udp \
 				-i $WAN_NIC -s $ANY_ADDR --sport $UNPRIV_PORTS \
 				-o $LAN_NIC -d $SVR_ADDR --dport $SVR_PORT \
