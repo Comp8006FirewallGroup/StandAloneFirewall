@@ -219,13 +219,6 @@ else ###########################################################################
   echo "=========================================================="
   echo -e "${txtylw}========= BLOCK OUTSIDE HOSTS USING INTERNAL ADDRs =========${txtdft}"
   arr=($ALLOW_TCP_PORTS_OUT)
-  if hping3 --spoof $INTERNAL_ADDR -p ${arr[0]} -S -c 1 $HOST_ADDR
-  then
-    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtred} FAILED ${txtcyn}=========${txtdft}"
-  else
-    echo -e "${txtcyn}========= HOST RESPONDED:${txtylw} CHECK ACCOUNTING ${txtcyn}=========${txtdft}"
-  fi
-
   echo -e "${txtylw}========= BLOCK WRONG WAY CONNECTIONS =========${txtdft}"
   if hping3 -S -s ${arr[0]} -p 2222 -c 1 $HOST_ADDR
   then

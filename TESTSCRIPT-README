@@ -1,0 +1,7 @@
+Configure User defined area to match current firewall and host configuration
+
+HOST_ADDR must match the machine being queried.
+
+Internal test can be run by running test.sh without argument
+
+External test must be run with sh test.sh external
