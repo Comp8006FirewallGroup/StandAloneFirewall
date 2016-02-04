@@ -10,16 +10,16 @@ ALLOW_TCP_PORTS_IN="80 22"
 ALLOW_UDP_PORTS_IN="22"
 ALLOW_ICMP_TYPES_IN="0"
 
-BLOCK_TCP_PORTS_OUT="80 22"
-BLOCK_UDP_PORTS_OUT="53"
-BLOCK_ICMP_TYPES_OUT="8"
+BLOCK_TCP_PORTS_IN="515 111"
+BLOCK_UDP_PORTS_IN="32768 32769"
+BLOCK_ICMP_TYPES_IN="8"
 
-BLOCK_TCP_PORTS_IN="80 22"
-BLOCK_UDP_PORTS_IN="53"
-BLOCK_ICMP_TYPES_IN="0"
+BLOCK_TCP_PORTS_OUT="515 111"
+BLOCK_UDP_PORTS_OUT="32768 32769"
+BLOCK_ICMP_TYPES_OUT="0"
 
-HOST_ADDR="8.8.8.8"
-INTERNAL_ADDR="10.210.0.5"      #SPOOFED ADDRESS - has to be checked manualy
+HOST_ADDR="10.64.205.162" # Host to test against. If testing from internal should be outside network
+INTERNAL_ADDR="192.168.56.111"      #SPOOFED ADDRESS - has to be checked manualy
 
 ## TEXT COLOR DEFINES ##
 txtblk='\e[0;30m' # Black
@@ -45,9 +45,9 @@ then
     echo -e "${txtylw}=========TCP test port: $p =========${txtdft}"
     if hping3 -S -c 1 -p $p $HOST_ADDR
     then
-      echo -e "${txtcyn}=========TCP test port: $p SYN:${txtred} FAILED ${txtcyn}=========${txtdft}"
-    else
       echo -e "${txtcyn}=========TCP test port: $p SYN:${txtgrn} PASSED ${txtcyn}=========${txtdft}"
+    else
+      echo -e "${txtcyn}=========TCP test port: $p SYN:${txtred} FAILED ${txtcyn}=========${txtdft}"
     fi
   done
 
@@ -80,9 +80,9 @@ then
     echo -e "${txtylw}=========TCP test port: $p =========${txtdft}"
     if hping3 -S -c 1 -p $p $HOST_ADDR
     then
-      echo -e "${txtcyn}=========TCP test port: $p SYN:${txtgrn} PASSED ${txtcyn}=========${txtdft}"
-    else
       echo -e "${txtcyn}=========TCP test port: $p SYN:${txtred} FAILED ${txtcyn}=========${txtdft}"
+    else
+      echo -e "${txtcyn}=========TCP test port: $p SYN:${txtgrn} PASSED ${txtcyn}=========${txtdft}"
     fi
   done
 
@@ -91,9 +91,9 @@ then
     echo -e "${txtylw}=========UDP test port: $p =========${txtdft}"
     if hping3 --udp -c 1 -p $p $HOST_ADDR
     then
-      echo -e "${txtcyn}=========UDP test port: $p: ${txtylw} CHECK ACCOUNTING ${txtcyn}=========${txtdft}"
-    else
       echo -e "${txtcyn}=========UDP test port: $p: ${txtred} FAILED ${txtcyn}=========${txtdft}"
+    else
+      echo -e "${txtcyn}=========UDP test port: $p: ${txtylw} CHECK ACCOUNTING ${txtcyn}=========${txtdft}"
     fi
   done
   for t in $BLOCK_ICMP_TYPES_IN
@@ -107,21 +107,25 @@ then
     fi
   done
 
+  echo "=========================================================="
+  echo "================== OTHER CONSTRAINS ======================"
+  echo "=========================================================="
   echo -e "${txtylw}========= BLOCK OUTSIDE HOSTS USING INTERNAL ADDRs =========${txtdft}"
-  arr=($ALLOW_TCP_PORTS_OUT)
-  if hping3 --spoof -p $INTERNAL_ADDR ${arr[0]} -S -c 1 $HOST_ADDR
-    then
-    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
+  arr=($ALLOW_TCP_PORTS_IN)
+  if hping3 --spoof $INTERNAL_ADDR -p ${arr[0]} -S -c 1 $HOST_ADDR
+  then
+    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtred} FAILED ${txtcyn}=========${txtdft}"
   else
-    echo -e "${txtcyn}========= HOST RESPONDED:${txtred} FAILED ${txtcyn}=========${txtdft}"
+    echo -e "${txtcyn}========= HOST RESPONDED:${txtylw} CHECK ACCOUNTING ${txtcyn}=========${txtdft}"
   fi
 
   echo -e "${txtylw}========= BLOCK WRONG WAY CONNECTIONS =========${txtdft}"
   if hping3 -S -s ${arr[0]} -p 2222 -c 1 $HOST_ADDR
-    then
-    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
-  else
+  then
     echo -e "${txtcyn}========= HOST RESPONDED:${txtred} FAILED ${txtcyn}=========${txtdft}"
+  else
+    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
+
   fi
 
   echo -e "${txtylw}========= ACCEPT FRAGMENTS =========${txtdft}"
@@ -135,26 +139,26 @@ then
   echo -e "${txtylw}========= DROP CONNECTIONS With SYN/FIN set =========${txtdft}"
   if hping3 -SF -s ${arr[0]} -c 1 $HOST_ADDR
     then
-    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
-  else
     echo -e "${txtcyn}========= HOST RESPONDED:${txtred} FAILED ${txtcyn}=========${txtdft}"
+  else
+    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
   fi
 else ##################################################################################################################
   echo "=========================================================="
   echo "==================== ALLOWED PORTS ======================="
   echo "=========================================================="
-  for p in $ALLOW_TCP_PORTS_IN
+  for p in $ALLOW_TCP_PORTS_OUT
   do
     echo -e "${txtylw}=========TCP test port: $p =========${txtdft}"
     if hping3 -S -c 1 -p $p $HOST_ADDR
     then
-      echo -e "${txtcyn}=========TCP test port: $p SYN:${txtred} FAILED ${txtcyn}=========${txtdft}"
-    else
       echo -e "${txtcyn}=========TCP test port: $p SYN:${txtgrn} PASSED ${txtcyn}=========${txtdft}"
+    else
+      echo -e "${txtcyn}=========TCP test port: $p SYN:${txtred} FAILED ${txtcyn}=========${txtdft}"
     fi
   done
 
-  for p in $ALLOW_UDP_PORTS_IN
+  for p in $ALLOW_UDP_PORTS_OUT
   do
     echo -e "${txtylw}=========UDP test port: $p =========${txtdft}"
     if hping3 --udp -c 1 -p $p $HOST_ADDR
@@ -164,7 +168,7 @@ else ###########################################################################
       echo -e "${txtcyn}=========UDP test port: $p: ${txtylw} CHECK ACCOUNTING ${txtcyn}=========${txtdft}"
     fi
   done
-  for t in $ALLOW_ICMP_TYPES_IN
+  for t in $ALLOW_ICMP_TYPES_OUT
   do
     echo -e "${txtylw}=========ICMP Type: $t =================${txtdft}"
     if hping3 --icmp -C $t -c 1 $HOST_ADDR
@@ -178,28 +182,28 @@ else ###########################################################################
   echo "=========================================================="
   echo "==================== BLOCKED PORTS ======================="
   echo "=========================================================="
-  for p in $BLOCK_TCP_PORTS_IN
+  for p in $BLOCK_TCP_PORTS_OUT
   do
     echo -e "${txtylw}=========TCP test port: $p =========${txtdft}"
     if hping3 -S -c 1 -p $p $HOST_ADDR
     then
-      echo -e "${txtcyn}=========TCP test port: $p SYN:${txtgrn} PASSED ${txtcyn}=========${txtdft}"
-    else
       echo -e "${txtcyn}=========TCP test port: $p SYN:${txtred} FAILED ${txtcyn}=========${txtdft}"
+    else
+      echo -e "${txtcyn}=========TCP test port: $p SYN:${txtgrn} PASSED ${txtcyn}=========${txtdft}"
     fi
   done
 
-  for p in $BLOCK_UDP_PORTS_IN
+  for p in $BLOCK_UDP_PORTS_OUT
   do
     echo -e "${txtylw}=========UDP test port: $p =========${txtdft}"
     if hping3 --udp -c 1 -p $p $HOST_ADDR
     then
-      echo -e "${txtcyn}=========UDP test port: $p: ${txtylw} CHECK ACCOUNTING ${txtcyn}=========${txtdft}"
-    else
       echo -e "${txtcyn}=========UDP test port: $p: ${txtred} FAILED ${txtcyn}=========${txtdft}"
+    else
+      echo -e "${txtcyn}=========UDP test port: $p: ${txtylw} CHECK ACCOUNTING ${txtcyn}=========${txtdft}"
     fi
   done
-  for t in $BLOCK_ICMP_TYPES_IN
+  for t in $BLOCK_ICMP_TYPES_OUT
   do
     echo -e "${txtylw}=========ICMP Type: $t =================${txtdft}"
     if hping3 --icmp -C $t -c 1 $HOST_ADDR
@@ -210,21 +214,25 @@ else ###########################################################################
     fi
   done
 
+  echo "=========================================================="
+  echo "================== OTHER CONSTRAINS ======================"
+  echo "=========================================================="
   echo -e "${txtylw}========= BLOCK OUTSIDE HOSTS USING INTERNAL ADDRs =========${txtdft}"
   arr=($ALLOW_TCP_PORTS_OUT)
-  if hping3 --spoof -p $INTERNAL_ADDR ${arr[0]} -S -c 1 $HOST_ADDR
-    then
-    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
+  if hping3 --spoof $INTERNAL_ADDR -p ${arr[0]} -S -c 1 $HOST_ADDR
+  then
+    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtred} FAILED ${txtcyn}=========${txtdft}"
   else
-    echo -e "${txtcyn}========= HOST RESPONDED:${txtred} FAILED ${txtcyn}=========${txtdft}"
+    echo -e "${txtcyn}========= HOST RESPONDED:${txtylw} CHECK ACCOUNTING ${txtcyn}=========${txtdft}"
   fi
 
   echo -e "${txtylw}========= BLOCK WRONG WAY CONNECTIONS =========${txtdft}"
   if hping3 -S -s ${arr[0]} -p 2222 -c 1 $HOST_ADDR
-    then
-    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
-  else
+  then
     echo -e "${txtcyn}========= HOST RESPONDED:${txtred} FAILED ${txtcyn}=========${txtdft}"
+  else
+    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
+
   fi
 
   echo -e "${txtylw}========= ACCEPT FRAGMENTS =========${txtdft}"
@@ -238,8 +246,8 @@ else ###########################################################################
   echo -e "${txtylw}========= DROP CONNECTIONS With SYN/FIN set =========${txtdft}"
   if hping3 -SF -s ${arr[0]} -c 1 $HOST_ADDR
     then
-    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
-  else
     echo -e "${txtcyn}========= HOST RESPONDED:${txtred} FAILED ${txtcyn}=========${txtdft}"
+  else
+    echo -e "${txtcyn}========= HOST DIDN'T RESPOND: ${txtgrn} PASSED ${txtcyn}=========${txtdft}"
   fi
 fi
