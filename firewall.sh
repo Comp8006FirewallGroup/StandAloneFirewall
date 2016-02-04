@@ -7,13 +7,13 @@ IPT="iptables"
 PS4='$LINENO '
 
 # network interfaces
-WAN_NIC="eno1"
-LAN_NIC="enp3s2"
+WAN_NIC="enp0s3"
+LAN_NIC="enp0s8"
 
 # addresses
-HOST_ADDR="192.168.0.22"
-SUBNET_ADDR="10.210.0.0/24"
-DHCP_SERVERS="192.168.0.100"
+HOST_ADDR="10.64.205.162"
+SUBNET_ADDR="192.168.56.0/24"
+DHCP_SERVERS="0.0.0.0/0"
 DNS_SERVERS="8.8.8.8"
 
 # allowed ICMP packet types
@@ -23,7 +23,7 @@ OUTBOUND_ICMP_TYPES="8"
 # TCP servers on LAN accessible from WAN
 # syntax: [public port 1],[private address 1],[private port 1] [public port 2],[private address 2],[private port 2]
 # example: 80,192.168.1.1,8080 22,192.168.1.5,22
-LAN_TCP_SVRS="22,10.210.0.1,22 8080,10.210.0.1,80"
+LAN_TCP_SVRS="21,192.168.56.101,21 20,192.168.56.101,20 22,192.168.56.101,22 80,192.168.56.101,80"
 
 # TCP servers on WAN accessible from LAN
 WAN_TCP_SVRS="22 80 443"
@@ -31,16 +31,16 @@ WAN_TCP_SVRS="22 80 443"
 # UDP servers on LAN accessible from WAN
 # syntax: [public port 1],[private address 1],[private port 1] [public port 2],[private address 2],[private port 2]
 # example: 80,192.168.1.1,8080 22,192.168.1.5,22
-LAN_UDP_SVRS="22,10.210.0.1,22"
+LAN_UDP_SVRS="22,192.168.56.101,22"
 
 # UDP servers on WAN accessible from LAN
 WAN_UDP_SVRS=""
 
 # TCP traffic to minimize delay for
-TCP_MINIMIZE_DELAY=""
+TCP_MINIMIZE_DELAY="22 21"
 
 # TCP traffic to maximize throughput for
-TCP_MAXIMIZE_THROUGHPUT=""
+TCP_MAXIMIZE_THROUGHPUT="20"
 
 # UDP traffic to minimize delay for
 UDP_MINIMIZE_DELAY=""
@@ -158,7 +158,7 @@ do
 
 	# make firewall rules
 	$IPT -A PREROUTING -t nat -i $WAN_NIC -p tcp \
-				-s $WAN_ADDR --sport $UNPRIV_PORTS \
+				! -s $SUBNET_ADDR  --sport $UNPRIV_PORTS \
 				-d $HOST_ADDR --dport $DST_PORT \
 				-m state --state NEW,ESTABLISHED \
 				-j DNAT --to $SVR_ADDR:$SVR_PORT
@@ -198,7 +198,7 @@ do
 
 	# make firewall rules
 	$IPT -A PREROUTING -t nat -i $WAN_NIC -p udp \
-				-s $WAN_ADDR --sport $UNPRIV_PORTS \
+				! -s $SUBNET_ADDR --sport $UNPRIV_PORTS \
 				-d $HOST_ADDR --dport $DST_PORT \
 				-j DNAT --to $SVR_ADDR:$SVR_PORT
 	$IPT -A FORWARD -p udp \
