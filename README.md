@@ -1,7 +1,7 @@
 # StandAloneFirewall
 This is a simple standalone firewall intended to be run on an external Linux box intended to be run using iptables and netfilter.
 
-##usage
+##Usage
 (1). Networking must be configured for the internal machines to route through the firewall box, and the firewall box to be able to route to the internal machines.
 (2). The top of firewall.sh contains several variables that may be user defined. Most important to be modified are the host address, which is the IP address of the firewall machine, the subnet address which is the subnet the host is routing to, and the DNS used by both machines.
 ```bash
